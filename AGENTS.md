@@ -4,11 +4,12 @@ This file is the operating manual for AI coding agents (Devin, Claude Code, Curs
 
 ## 1. Project identity
 
-- **Owner / fork status:** `BlindMaster24/podkop-wiki` is **not a GitHub fork**. It is an independent personal mirror of `itdoginfo/podkop-wiki`, the source of `podkop.net`. Upstream commits are pulled in selectively, not by automatic PR.
+- **Owner / fork status:** `BlindMaster24/podkop-wiki` is **not a GitHub fork**. It is an independent personal mirror of `itdoginfo/podkop-wiki`, the source of `podkop.net`.
 - **Upstream:** `https://github.com/itdoginfo/podkop-wiki` (read-only).
 - **License:** GPL-2.0-or-later (inherited from upstream). Preserve `LICENSE`.
 - **Companion repo:** `BlindMaster24/podkop-ng` (the software the docs describe). When documenting features, source-of-truth for behavior is that repo, not user assumptions.
-- **Scope of changes in this fork:** documentation that matches this fork of the software; in particular **accessibility-aware install/configuration guides** for users on screen readers or keyboard-only setups.
+- **Scope of changes in this fork:** documentation that matches this fork of the software; in particular **accessibility-aware install/configuration guides** for users on screen readers or keyboard-only setups. Other docs work is welcome; there is no fixed scope beyond a11y emphasis.
+- **Upstream relationship:** treat this as a **separate project**, not as a maintained downstream. There is no obligation to keep upstream-sync compatibility; do not constrain new work for the sake of easy upstream merges. Occasional cherry-picks from `itdoginfo/podkop-wiki` may still happen; **the AI agent — not the human owner — is the one expected to perform them when the owner asks**, using the workflow in §4. AGENTS.md keeps those commands ready for that reason.
 
 ## 2. What this repository builds
 
@@ -54,7 +55,9 @@ Key facts:
 
 The deployment workflow (`deploy.yml`) targets a `self-hosted` runner that has filesystem access to `/var/podkop/`. **Do not assume that runner exists for this fork.** See §5.
 
-## 4. Upstream sync workflow
+## 4. Upstream sync workflow (run by the AI agent on demand)
+
+This repo is developed as a separate project; nothing here syncs to upstream automatically or on a schedule. **This section is the procedure the AI agent runs when the owner asks for one or more upstream commits to be pulled in.** The owner is not expected to run these commands themselves.
 
 Upstream is configured as a remote in fresh local clones:
 
@@ -63,17 +66,17 @@ git remote add upstream https://github.com/itdoginfo/podkop-wiki.git
 git remote set-url --push upstream DISABLED
 ```
 
-To pull upstream changes:
+To pull upstream changes when asked:
 
 ```sh
 git fetch upstream
 git log upstream/main --oneline ^main
-git cherry-pick <sha>...
-# or
+git cherry-pick <sha>...                   # selective (default mode)
+# or, only if the owner explicitly asks for a bulk merge:
 git merge --no-ff upstream/main
 ```
 
-When upstream restructures `content/docs/` (renames, moved sections), prefer a single merge commit so file history is preserved. Resolve conflicts conservatively: keep our accessibility-specific additions; drop upstream Google Analytics changes (see §8).
+Default to selective cherry-picks of the specific commits the owner names. Use `merge --no-ff` only on explicit owner request. When resolving conflicts, accessibility-specific additions in this repo always win; do not pull in upstream Google Analytics changes (see §8). Never push to `upstream`.
 
 ## 5. Build, preview, deploy
 
@@ -154,7 +157,7 @@ These conventions apply to **every** change made by an AI agent in this repo.
 
 5. **PRs.**
    - Title in Conventional Commits format.
-   - Description includes: motivation, what changed, screenshots of changed pages (`hugo server` and capture rendered output), confirmation that `hugo` builds without errors, upstream-sync impact.
+   - Description includes: motivation, what changed, screenshots of changed pages (`hugo server` and capture rendered output), confirmation that `hugo` builds without errors.
 
 6. **Accessibility (binding for content and layout work).**
    - Every image must have meaningful `alt` text in the language of the surrounding content. Decorative-only images use empty `alt=""`.
@@ -186,7 +189,7 @@ Concrete protocol when an agent is asked to implement a change:
 6. **Commit.** One Conventional Commit per logical change. English, imperative.
 7. **PR.** Open against `main` with screenshots and build evidence.
 8. **Wait for CI.** Do not declare done until CI is green.
-9. **Sync.** Upstream syncs are their own branch; never mix upstream merges with new content in the same commit.
+9. **Sync (only when the owner asks).** When the owner names one or more commits from `itdoginfo/podkop-wiki` to pull in, open a `sync/upstream-<date>` branch, cherry-pick those commits (or `merge --no-ff` only on explicit owner request), run `hugo` to verify the site still builds, resolve conflicts (a11y-related conflicts always favor preserving accessibility work; drop upstream GA changes per §8), open PR. Do not initiate syncs on your own.
 
 ## 8. Things to fix or escalate before public deployment under our domain
 
@@ -210,7 +213,7 @@ Stop and ask the human owner before doing any of the following:
 - Adding telemetry beyond what §8 already covers.
 - Touching `LICENSE`.
 - Force-pushing to `main` or any shared branch.
-- Auto-merging the upstream `main` without review (always cherry-pick or open a sync PR).
+- Auto-merging the upstream `main` without an explicit owner request (the agent must wait to be asked; see §4).
 
 ## 10. Quick reference
 
